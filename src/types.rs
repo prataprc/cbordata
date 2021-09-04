@@ -209,7 +209,9 @@ impl FromCbor for String {
     fn from_cbor(val: Cbor) -> Result<String> {
         use std::str::from_utf8;
         match val {
-            Cbor::Major3(_, val) => Ok(err_at!(FailConvert, from_utf8(&val))?.to_string()),
+            Cbor::Major3(_, val) => {
+                Ok(err_at!(FailConvert, from_utf8(&val))?.to_string())
+            }
             _ => err_at!(FailConvert, msg: "not utf8-string"),
         }
     }

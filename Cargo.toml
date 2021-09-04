@@ -21,7 +21,7 @@ debug = true
 
 [dependencies]
 arbitrary = { version = "0.4.7", features = ["derive"], optional = true }
-cbordata-derive = { path = "cbordata-derive", version = "=0.3.0"}
+cbordata-derive = { path = "cbordata-derive", version = "=0.5.0"}
 
 [dev-dependencies]
 quickcheck = "0.7"
