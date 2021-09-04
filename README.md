@@ -2,7 +2,6 @@ Why yet another JSON package in Rust ?
 ======================================
 
 [![Rustdoc](https://img.shields.io/badge/rustdoc-hosted-blue.svg)](https://docs.rs/cbordata)
-[![GitPitch](https://gitpitch.com/assets/badge.svg)](https://gitpitch.com/bnclabs/cbordata/master?grs=github)
 [![Build Status](https://travis-ci.org/bnclabs/cbordata.svg?branch=master)](https://travis-ci.org/bnclabs/cbordata)
 
 This crate makes several trade-offs that are tuned for big-data
