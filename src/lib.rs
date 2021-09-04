@@ -97,8 +97,27 @@ impl fmt::Debug for Error {
 impl error::Error for Error {}
 
 mod cbor;
+mod types;
 
-pub use cbor::{Cbor, FromCbor, Info, IntoCbor, Key, SimpleValue, Tag, RECURSION_LIMIT};
+pub use cbor::{Cbor, Info, Key, SimpleValue, Tag, RECURSION_LIMIT};
+
+/// Convert rust-native value to [Cbor], which can then be encoded into bytes
+/// using Cbor.
+///
+/// Refer to [FromCbor] the reverse transformation of a type to [Cbor] value.
+pub trait IntoCbor {
+    /// Convert implementing type's value into [Cbor].
+    fn into_cbor(self) -> Result<Cbor>;
+}
+
+/// Convert from Cbor, the cbor value is typically obtained by
+/// decoding it from bytes.
+///
+/// Refer to [IntoCbor] the reverse transformation of [Cbor] value into type's value.
+pub trait FromCbor: Sized {
+    /// Convert value from [Cbor] into type's value.
+    fn from_cbor(val: Cbor) -> Result<Self>;
+}
 
 /// Result type, for jsondata functions and methods, that require a
 /// success or failure variant.
