@@ -24,6 +24,7 @@ Useful links
 
 * **[API Documentation](https://docs.rs/jsondata)**
 * [CBOR][https://cbor.io/] specification 
+* [RFC specification][cbor-rfc] for CBOR.
 * [Release notes](./RELEASE.md).
 
 Contribution
@@ -40,3 +41,4 @@ Contribution
 
 [spellcheck]: https://github.com/drahnr/cargo-spellcheck
 [dco]: https://developercertificate.org/
+[cbor-rfc]: https://tools.ietf.org/html/rfc7049
