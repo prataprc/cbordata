@@ -129,19 +129,21 @@ impl Cbor {
             }
             Cbor::Major2(info, byts) => {
                 let n = encode_hdr(major, *info, w)?;
-                let m = encode_addnl(err_at!(FailConvert, u64::try_from(byts.len()))?, w)?;
-                write_w!(w, &byts);
+                let m =
+                    encode_addnl(err_at!(FailConvert, u64::try_from(byts.len()))?, w)?;
+                write_w!(w, byts);
                 n + m + byts.len()
             }
             Cbor::Major3(info, text) => {
                 let n = encode_hdr(major, *info, w)?;
                 let m = encode_addnl(err_at!(FailCbor, u64::try_from(text.len()))?, w)?;
-                write_w!(w, &text);
+                write_w!(w, text);
                 n + m + text.len()
             }
             Cbor::Major4(info, list) => {
                 let n = encode_hdr(major, *info, w)?;
-                let m = encode_addnl(err_at!(FailConvert, u64::try_from(list.len()))?, w)?;
+                let m =
+                    encode_addnl(err_at!(FailConvert, u64::try_from(list.len()))?, w)?;
                 let mut acc = 0;
                 for x in list.iter() {
                     acc += x.do_encode(w, depth + 1)?;
@@ -187,7 +189,7 @@ impl Cbor {
         Cbor::do_decode(r, 1)
     }
 
-    fn do_decode<R>(r: &mut R, depth: u32) -> Result<(Cbor, usize)>
+    fn do_decode<R>(reader: &mut R, depth: u32) -> Result<(Cbor, usize)>
     where
         R: io::Read,
     {
@@ -195,22 +197,22 @@ impl Cbor {
             return err_at!(FailCbor, msg: "decode recursion limt exceeded");
         }
 
-        let (major, info, n) = decode_hdr(r)?;
+        let (major, info, n) = decode_hdr(reader)?;
 
         let (val, m) = match (major, info) {
             (0, info) => {
-                let (val, m) = decode_addnl(info, r)?;
+                let (val, m) = decode_addnl(info, reader)?;
                 (Cbor::Major0(info, val), m)
             }
             (1, info) => {
-                let (val, m) = decode_addnl(info, r)?;
+                let (val, m) = decode_addnl(info, reader)?;
                 (Cbor::Major1(info, val), m)
             }
             (2, Info::Indefinite) => {
                 let mut data: Vec<u8> = Vec::default();
                 let mut m = 0_usize;
                 loop {
-                    let (val, k) = Cbor::do_decode(r, depth + 1)?;
+                    let (val, k) = Cbor::do_decode(reader, depth + 1)?;
                     match val {
                         Cbor::Major2(_, chunk) => data.extend_from_slice(&chunk),
                         Cbor::Major7(_, SimpleValue::Break) => break,
@@ -221,17 +223,17 @@ impl Cbor {
                 (Cbor::Major2(info, data), m)
             }
             (2, info) => {
-                let (val, m) = decode_addnl(info, r)?;
+                let (val, m) = decode_addnl(info, reader)?;
                 let len: usize = err_at!(FailConvert, val.try_into())?;
                 let mut data = vec![0; len];
-                read_r!(r, &mut data);
+                read_r!(reader, &mut data);
                 (Cbor::Major2(info, data), m + len)
             }
             (3, Info::Indefinite) => {
                 let mut text: Vec<u8> = Vec::default();
                 let mut m = 0_usize;
                 loop {
-                    let (val, k) = Cbor::do_decode(r, depth + 1)?;
+                    let (val, k) = Cbor::do_decode(reader, depth + 1)?;
                     match val {
                         Cbor::Major3(_, chunk) => text.extend_from_slice(&chunk),
                         Cbor::Major7(_, SimpleValue::Break) => break,
@@ -242,17 +244,17 @@ impl Cbor {
                 (Cbor::Major3(info, text), m)
             }
             (3, info) => {
-                let (val, m) = decode_addnl(info, r)?;
+                let (val, m) = decode_addnl(info, reader)?;
                 let len: usize = err_at!(FailConvert, val.try_into())?;
                 let mut text = vec![0; len];
-                read_r!(r, &mut text);
+                read_r!(reader, &mut text);
                 (Cbor::Major3(info, text), m + len)
             }
             (4, Info::Indefinite) => {
                 let mut list: Vec<Cbor> = vec![];
                 let mut m = 0_usize;
                 loop {
-                    let (val, k) = Cbor::do_decode(r, depth + 1)?;
+                    let (val, k) = Cbor::do_decode(reader, depth + 1)?;
                     match val {
                         Cbor::Major7(_, SimpleValue::Break) => break,
                         item => list.push(item),
@@ -263,9 +265,9 @@ impl Cbor {
             }
             (4, info) => {
                 let mut list: Vec<Cbor> = vec![];
-                let (len, mut m) = decode_addnl(info, r)?;
+                let (len, mut m) = decode_addnl(info, reader)?;
                 for _ in 0..len {
-                    let (val, k) = Cbor::do_decode(r, depth + 1)?;
+                    let (val, k) = Cbor::do_decode(reader, depth + 1)?;
                     list.push(val);
                     m += k;
                 }
@@ -275,8 +277,8 @@ impl Cbor {
                 let mut map: Vec<(Key, Cbor)> = Vec::default();
                 let mut m = 0_usize;
                 loop {
-                    let (key, j) = Cbor::do_decode(r, depth + 1)?;
-                    let (val, k) = Cbor::do_decode(r, depth + 1)?;
+                    let (key, j) = Cbor::do_decode(reader, depth + 1)?;
+                    let (val, k) = Cbor::do_decode(reader, depth + 1)?;
                     let val = match val {
                         Cbor::Major7(_, SimpleValue::Break) => break,
                         val => val,
@@ -288,21 +290,21 @@ impl Cbor {
             }
             (5, info) => {
                 let mut map: Vec<(Key, Cbor)> = Vec::default();
-                let (len, mut m) = decode_addnl(info, r)?;
+                let (len, mut m) = decode_addnl(info, reader)?;
                 for _ in 0..len {
-                    let (key, j) = Cbor::do_decode(r, depth + 1)?;
-                    let (val, k) = Cbor::do_decode(r, depth + 1)?;
+                    let (key, j) = Cbor::do_decode(reader, depth + 1)?;
+                    let (val, k) = Cbor::do_decode(reader, depth + 1)?;
                     map.push((Key::from_cbor(key)?, val));
                     m += j + k;
                 }
                 (Cbor::Major5(info, map), m)
             }
             (6, info) => {
-                let (tag, m) = Tag::decode(info, r)?;
+                let (tag, m) = Tag::decode(info, reader)?;
                 (Cbor::Major6(info, tag), m)
             }
             (7, info) => {
-                let (sval, m) = SimpleValue::decode(info, r)?;
+                let (sval, m) = SimpleValue::decode(info, reader)?;
                 (Cbor::Major7(info, sval), m)
             }
             _ => unreachable!(),
