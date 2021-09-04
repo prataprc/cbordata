@@ -341,3 +341,38 @@ impl FromCbor for Key {
         Ok(key)
     }
 }
+
+macro_rules! convert_key {
+    ($(($t:ty, $var:ident))*) => {$(
+        impl From<$t> for Key {
+            fn from(val: $t) -> Key {
+                Key::$var(val)
+            }
+        }
+
+        impl From<Key> for $t {
+            fn from(key: Key) -> $t {
+                match key {
+                    Key::$var(val) => val,
+                    _ => panic!("not a number {:?}", key),
+                }
+            }
+        }
+    )*}
+}
+
+convert_key! {
+    (bool, Bool)
+    (i64, N64)
+    (u64, U64)
+    (f32, F32)
+    (f64, F64)
+    (Vec<u8>, Bytes)
+    (String, Text)
+}
+
+impl<'a> From<&'a str> for Key {
+    fn from(val: &'a str) -> Key {
+        Key::Text(val.to_string())
+    }
+}
