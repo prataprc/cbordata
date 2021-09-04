@@ -101,7 +101,7 @@ fn from_struct_to_cbor(
     }
 
     quote! {
-        impl#generics #croot::cbor::IntoCbor for #name#generics #where_clause {
+        impl #generics #croot::cbor::IntoCbor for #name #generics #where_clause {
             fn into_cbor(self) -> #croot::Result<#croot::cbor::Cbor> {
                 let value = self;
                 let mut items: Vec<#croot::cbor::Cbor> = Vec::default();
@@ -174,8 +174,8 @@ fn from_cbor_to_struct(
     }
 
     quote! {
-        impl#generics #croot::cbor::FromCbor for #name#generics #where_clause {
-            fn from_cbor(value: #croot::cbor::Cbor) -> #croot::Result<#name#generics> {
+        impl #generics #croot::cbor::FromCbor for #name #generics #where_clause {
+            fn from_cbor(value: #croot::cbor::Cbor) -> #croot::Result<#name #generics> {
                 use #croot::{cbor::IntoCbor, Error};
 
                 let mut items = Vec::<#croot::cbor::Cbor>::from_cbor(value)?;
@@ -263,7 +263,7 @@ fn from_enum_to_cbor(
     }
 
     quote! {
-        impl#generics #croot::cbor::IntoCbor for #name#generics #where_clause {
+        impl #generics #croot::cbor::IntoCbor for #name #generics #where_clause {
             fn into_cbor(self) -> #croot::Result<#croot::cbor::Cbor> {
                 let value = self;
 
@@ -382,8 +382,8 @@ fn from_cbor_to_enum(
         where_clause.extend(quote! { #type_var: #croot::cbor::FromCbor, });
     }
     quote! {
-        impl#generics #croot::cbor::FromCbor for #name#generics #where_clause {
-            fn from_cbor(value: #croot::cbor::Cbor) -> #croot::Result<#name#generics> {
+        impl #generics #croot::cbor::FromCbor for #name #generics #where_clause {
+            fn from_cbor(value: #croot::cbor::Cbor) -> #croot::Result<#name #generics> {
                 use #croot::{cbor::IntoCbor, Error};
 
                 let mut items =  Vec::<#croot::cbor::Cbor>::from_cbor(value)?;

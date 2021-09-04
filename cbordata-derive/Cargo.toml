@@ -1,7 +1,7 @@
 [package]
 name = "cbordata-derive"
-version = "0.3.0"
-edition = "2018"
+version = "0.5.0"
+edition = "2021"
 authors = ["prataprc <prataprc@gmail.com>"]
 description = "Macros for automatically implement CBOR codec on Rust types"
 documentation = "https://docs.rs/cbordata-derive"
