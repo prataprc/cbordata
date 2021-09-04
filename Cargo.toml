@@ -1,0 +1,29 @@
+[package]
+name = "cbordata"
+version = "0.2.0"
+description = "CBOR processing package for document databases and distributed applications"
+repository = "https://github.com/bnclabs/cbordata"
+documentation = "https://docs.rs/cbordata"
+keywords = ["CBOR", "cbor"]
+categories = ["parsing", "encoding"]
+authors = ["prataprc <prataprc@gmail.com>"]
+readme = "README.md"
+license = "MIT"
+edition = "2021"
+
+[profile.release]
+debug = true
+
+[profile.bench]
+debug = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+arbitrary = { version = "0.4.7", features = ["derive"], optional = true }
+cbordata-derive = { path = "cbordata-derive", version = "=0.3.0"}
+
+[dev-dependencies]
+quickcheck = "0.7"
+rand = { version = "0.8.4", features = ["small_rng"] }
+arbitrary = { version = "0.4.7", features = ["derive"] }

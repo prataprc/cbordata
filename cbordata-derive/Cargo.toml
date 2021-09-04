@@ -1,0 +1,22 @@
+[package]
+name = "cbordata-derive"
+version = "0.3.0"
+edition = "2018"
+authors = ["prataprc <prataprc@gmail.com>"]
+description = "Macros for automatically implement CBOR codec on Rust types"
+documentation = "https://docs.rs/cbordata-derive"
+repository = "https://github.com/bnclabs/cbordata"
+keywords = ["macro", "cbor"]
+categories = ["encoding"]
+license = "MIT"
+
+[dependencies]
+lazy_static = "1.2.0"
+syn = { version = "1", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+heck = "0.3.0"
+proc-macro-error = "0.4.7"
+
+[lib]
+proc-macro = true
