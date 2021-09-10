@@ -1,33 +1,44 @@
 build:
 	# ... build ...
-	cargo +nightly build
 	# TODO: cargo +stable build
+	cargo +nightly build
+	cd cbordata-derive; cargo +nightly build
+	#
 	# ... test ...
-	cargo +nightly test --no-run
 	# TODO: cargo +stable test --no-run
+	# TODO: cd cbordata-derive; cargo +nightly test --no-run
+	cargo +nightly test --no-run
+	cd cbordata-derive; cargo +nightly test --no-run
+	#
 	# ... bench ...
 	cargo +nightly bench --no-run
+	cd cbordata-derive; cargo +nightly bench --no-run
+	#
 	# ... doc ...
-	cargo +nightly doc
 	# TODO: cargo +stable doc
+	# TODO: cd cbordata-derive; cargo +nightly bench --no-run
+	cargo +nightly doc
+	cd cbordata-derive; cargo +nightly bench --no-run
+	#
 	# ... meta commands ...
 	cargo +nightly clippy --all-targets --all-features
+	cd cbordata-derive; cargo +nightly clippy --all-targets --all-features
 
 test:
 	# ... test ...
-	cargo +nightly test
-	cd cbordata-derive; cargo +nightly test
-	cargo +nightly run --example macro
 	# TODO: cargo +stable test --no-run
 	# TODO: cd cbordata-derive; cargo +stable test
 	# TODO: cargo +stable run --example macro
+	cargo +nightly test
+	cd cbordata-derive; cargo +nightly test
+	cargo +nightly run --example macro
 
 bench:
-	# ... test ...
-	cargo +nightly bench
-	cd cbordata-derive; cargo +nightly bench
+	# ... bench ...
 	# TODO: cargo +stable test --no-run
 	# TODO: cd cbordata-derive; cargo +stable test
+	cargo +nightly bench
+	cd cbordata-derive; cargo +nightly bench
 
 flamegraph:
 	echo "not an executable"

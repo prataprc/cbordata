@@ -566,12 +566,11 @@ fn get_root_crate(crate_local: bool) -> TokenStream {
 
 fn no_default_generics(input: &DeriveInput) -> Generics {
     let mut generics = input.generics.clone();
-    generics.params.iter_mut().for_each(|param| match param {
-        GenericParam::Type(param) => {
+    generics.params.iter_mut().for_each(|param| {
+        if let GenericParam::Type(param) = param {
             param.eq_token = None;
             param.default = None;
         }
-        _ => (),
     });
     generics
 }

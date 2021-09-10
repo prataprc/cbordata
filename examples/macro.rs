@@ -53,7 +53,7 @@ fn main() {
     };
 
     let val: Cbor = p_ref.clone().into_cbor().unwrap();
-    let p: Parent = Parent::from_cbor(val.clone()).unwrap();
+    let p: Parent = Parent::from_cbor(val).unwrap();
     println!("{:?}", p);
     println!("{:?}", p_ref);
     assert_eq!(p_ref, p);
