@@ -96,6 +96,9 @@ impl fmt::Debug for Error {
 
 impl error::Error for Error {}
 
+#[doc(hidden)]
+pub use cbordata_derive::*;
+
 mod cbor;
 mod types;
 

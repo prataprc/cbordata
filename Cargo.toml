@@ -29,5 +29,9 @@ quickcheck = "0.7"
 rand = { version = "0.8.4", features = ["small_rng"] }
 arbitrary = { version = "0.4.7", features = ["derive"] }
 
+[[example]]
+name = "macro"
+crate-type = ["bin"]
+
 [badges]
 maintenance = { status = "actively-developed" }

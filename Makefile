@@ -17,20 +17,22 @@ test:
 	# ... test ...
 	cargo +nightly test
 	cd cbordata-derive; cargo +nightly test
+	cargo +nightly run --example macro
 	# TODO: cargo +stable test --no-run
-	# TODO: cd cbordata-derive; cargo +nightly test
+	# TODO: cd cbordata-derive; cargo +stable test
+	# TODO: cargo +stable run --example macro
 
 bench:
 	# ... test ...
 	cargo +nightly bench
 	cd cbordata-derive; cargo +nightly bench
 	# TODO: cargo +stable test --no-run
-	# TODO: cd cbordata-derive; cargo +nightly test
+	# TODO: cd cbordata-derive; cargo +stable test
 
 flamegraph:
 	echo "not an executable"
 
-prepare:
+prepare: build test bench
 	check.sh check.out
 	perf.sh perf.out
 

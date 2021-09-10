@@ -73,9 +73,9 @@ fn from_struct_to_cbor(
     let id_declr = let_id(name, generics);
     let croot = get_root_crate(crate_local);
     let preamble = quote! {
-        let val: #croot::cbor::Cbor = {
+        let val: #croot::Cbor = {
             #id_declr;
-            #croot::cbor::Tag::from_identifier(id).into()
+            #croot::Tag::from_identifier(id).into()
         };
         items.push(val);
     };
@@ -97,14 +97,14 @@ fn from_struct_to_cbor(
             GenericParam::Type(param) => &param.ident,
             _ => abort_call_site!("only type parameter are supported"),
         };
-        where_clause.extend(quote! { #type_var: #croot::cbor::IntoCbor, });
+        where_clause.extend(quote! { #type_var: #croot::IntoCbor, });
     }
 
     quote! {
-        impl #generics #croot::cbor::IntoCbor for #name #generics #where_clause {
-            fn into_cbor(self) -> #croot::Result<#croot::cbor::Cbor> {
+        impl #generics #croot::IntoCbor for #name #generics #where_clause {
+            fn into_cbor(self) -> #croot::Result<#croot::Cbor> {
                 let value = self;
-                let mut items: Vec<#croot::cbor::Cbor> = Vec::default();
+                let mut items: Vec<#croot::Cbor> = Vec::default();
 
                 #preamble
                 #token_fields;
@@ -138,9 +138,9 @@ fn from_cbor_to_struct(
             #croot::err_at!(FailConvert, msg: "empty msg for {}", #name_lit)?;
         }
         let data_id = items.remove(0);
-        let type_id: #croot::cbor::Cbor = {
+        let type_id: #croot::Cbor = {
             #id_declr;
-            #croot::cbor::Tag::from_identifier(id).into()
+            #croot::Tag::from_identifier(id).into()
         };
         if data_id != type_id {
             #croot::err_at!(FailConvert, msg: "bad id for {}", #name_lit)?;
@@ -170,15 +170,15 @@ fn from_cbor_to_struct(
             GenericParam::Type(param) => &param.ident,
             _ => abort_call_site!("only type parameter are supported"),
         };
-        where_clause.extend(quote! { #type_var: #croot::cbor::FromCbor, });
+        where_clause.extend(quote! { #type_var: #croot::FromCbor, });
     }
 
     quote! {
-        impl #generics #croot::cbor::FromCbor for #name #generics #where_clause {
-            fn from_cbor(value: #croot::cbor::Cbor) -> #croot::Result<#name #generics> {
-                use #croot::{cbor::IntoCbor, Error};
+        impl #generics #croot::FromCbor for #name #generics #where_clause {
+            fn from_cbor(value: #croot::Cbor) -> #croot::Result<#name #generics> {
+                use #croot::{IntoCbor, Error};
 
-                let mut items = Vec::<#croot::cbor::Cbor>::from_cbor(value)?;
+                let mut items = Vec::<#croot::Cbor>::from_cbor(value)?;
 
                 #preamble
 
@@ -213,9 +213,9 @@ fn from_enum_to_cbor(
     let id_declr = let_id(name, generics);
     let croot = get_root_crate(crate_local);
     let preamble = quote! {
-        let val: #croot::cbor::Cbor = {
+        let val: #croot::Cbor = {
             #id_declr;
-            #croot::cbor::Tag::from_identifier(id).into()
+            #croot::Tag::from_identifier(id).into()
         };
         items.push(val);
     };
@@ -259,15 +259,15 @@ fn from_enum_to_cbor(
             GenericParam::Type(param) => &param.ident,
             _ => abort_call_site!("only type parameter are supported"),
         };
-        where_clause.extend(quote! { #type_var: #croot::cbor::IntoCbor, });
+        where_clause.extend(quote! { #type_var: #croot::IntoCbor, });
     }
 
     quote! {
-        impl #generics #croot::cbor::IntoCbor for #name #generics #where_clause {
-            fn into_cbor(self) -> #croot::Result<#croot::cbor::Cbor> {
+        impl #generics #croot::IntoCbor for #name #generics #where_clause {
+            fn into_cbor(self) -> #croot::Result<#croot::Cbor> {
                 let value = self;
 
-                let mut items: Vec<#croot::cbor::Cbor> = Vec::default();
+                let mut items: Vec<#croot::Cbor> = Vec::default();
 
                 #preamble
                 match value {
@@ -294,9 +294,9 @@ fn from_cbor_to_enum(
             #croot::err_at!(FailConvert, msg: "empty msg for {}", #name_lit)?;
         }
         let data_id = items.remove(0);
-        let type_id: #croot::cbor::Cbor= {
+        let type_id: #croot::Cbor= {
             #id_declr;
-            #croot::cbor::Tag::from_identifier(id).into()
+            #croot::Tag::from_identifier(id).into()
         };
         if data_id != type_id {
             #croot::err_at!(FailConvert, msg: "bad {}", #name_lit)?
@@ -379,14 +379,14 @@ fn from_cbor_to_enum(
             GenericParam::Type(param) => &param.ident,
             _ => abort_call_site!("only type parameter are supported"),
         };
-        where_clause.extend(quote! { #type_var: #croot::cbor::FromCbor, });
+        where_clause.extend(quote! { #type_var: #croot::FromCbor, });
     }
     quote! {
-        impl #generics #croot::cbor::FromCbor for #name #generics #where_clause {
-            fn from_cbor(value: #croot::cbor::Cbor) -> #croot::Result<#name #generics> {
-                use #croot::{cbor::IntoCbor, Error};
+        impl #generics #croot::FromCbor for #name #generics #where_clause {
+            fn from_cbor(value: #croot::Cbor) -> #croot::Result<#name #generics> {
+                use #croot::{IntoCbor, Error};
 
-                let mut items =  Vec::<#croot::cbor::Cbor>::from_cbor(value)?;
+                let mut items =  Vec::<#croot::Cbor>::from_cbor(value)?;
 
                 #preamble
 
@@ -416,7 +416,7 @@ fn named_fields_to_cbor(fields: &FieldsNamed, croot: TokenStream) -> TokenStream
 
         match &field.ident {
             Some(field_name) if is_bytes => tokens.extend(quote! {
-                items.push(#croot::cbor::Cbor::bytes_into_cbor(value.#field_name)?);
+                items.push(#croot::Cbor::bytes_into_cbor(value.#field_name)?);
             }),
             Some(field_name) => tokens.extend(quote! {
                 items.push(value.#field_name.into_cbor()?);
@@ -441,7 +441,7 @@ fn named_var_fields_to_cbor(
 
         match &field.ident {
             Some(field_name) if is_bytes => body.extend(quote! {
-                items.push(#croot::cbor::Cbor::bytes_into_cbor(#field_name)?);
+                items.push(#croot::Cbor::bytes_into_cbor(#field_name)?);
             }),
             Some(field_name) => body.extend(quote! {
                 items.push(#field_name.into_cbor()?);
@@ -466,7 +466,7 @@ fn unnamed_fields_to_cbor(
 
         if is_bytes {
             body.extend(quote! {
-                items.push(#croot::cbor::Cbor::bytes_into_cbor(#field_name)?);
+                items.push(#croot::Cbor::bytes_into_cbor(#field_name)?);
             });
         } else {
             body.extend(quote! {
@@ -490,7 +490,7 @@ fn cbor_to_named_fields(fields: &FieldsNamed, croot: TokenStream) -> TokenStream
             }
         } else {
             quote! {
-                #field_name: <#ty as #croot::cbor::FromCbor>::from_cbor(items.remove(0))?,
+                #field_name: <#ty as #croot::FromCbor>::from_cbor(items.remove(0))?,
             }
         };
         tokens.extend(field_tokens);
@@ -517,7 +517,7 @@ fn cbor_to_named_var_fields(
             });
         } else {
             body.extend(quote! {
-                #field_name: <#ty as #croot::cbor::FromCbor>::from_cbor(items.remove(0))?,
+                #field_name: <#ty as #croot::FromCbor>::from_cbor(items.remove(0))?,
             });
         }
     }
@@ -541,7 +541,7 @@ fn cbor_to_unnamed_fields(
             body.extend(quote! { items.remove(0).into_bytes()?, });
         } else {
             body.extend(
-                quote! { <#ty as #croot::cbor::FromCbor>::from_cbor(items.remove(0))?, },
+                quote! { <#ty as #croot::FromCbor>::from_cbor(items.remove(0))?, },
             );
         }
     }
@@ -560,7 +560,7 @@ fn get_root_crate(crate_local: bool) -> TokenStream {
     if crate_local {
         quote! { crate }
     } else {
-        quote! { ::mkit }
+        quote! { ::cbordata }
     }
 }
 
