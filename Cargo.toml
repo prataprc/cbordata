@@ -17,7 +17,8 @@ debug = true
 [profile.bench]
 debug = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "cbordata"
 
 [dependencies]
 arbitrary = { version = "0.4.7", features = ["derive"], optional = true }
@@ -27,3 +28,6 @@ cbordata-derive = { path = "cbordata-derive", version = "=0.5.0"}
 quickcheck = "0.7"
 rand = { version = "0.8.4", features = ["small_rng"] }
 arbitrary = { version = "0.4.7", features = ["derive"] }
+
+[badges]
+maintenance = { status = "actively-developed" }
