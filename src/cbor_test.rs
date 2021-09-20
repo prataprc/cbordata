@@ -56,7 +56,7 @@ fn test_simple_value() {
 #[test]
 fn test_cbor() {
     let seed: u128 = random();
-    // let seed: u128 = 106952773668701652133737084585647538146;
+    // let seed: u128 = 193689849637978864038196716223816071251;
     println!("test_cbor seed:{}", seed);
     let mut rng = {
         let mut rng_seed = [0; 32];
@@ -74,11 +74,52 @@ fn test_cbor() {
             uns.arbitrary().unwrap()
         };
 
-        // println!("test_cbor val:{:?}", val);
         let mut buf: Vec<u8> = vec![];
         let n = val.encode(&mut buf).unwrap();
         let (nval, m) = Cbor::decode(&mut buf.as_slice()).unwrap();
         assert_eq!(n, m);
         assert_eq!(val, nval);
+    }
+}
+
+#[test]
+fn test_bigint() {
+    let seed: u128 = random();
+    // let seed: u128 = 193689849637978864038196716223816071251;
+    println!("test_bigint seed:{}", seed);
+    let mut rng = {
+        let mut rng_seed = [0; 32];
+        rng_seed[0..16].copy_from_slice(&seed.to_le_bytes());
+        SmallRng::from_seed(rng_seed)
+    };
+
+    for _i in 0..10000 {
+        let vals = {
+            let bytes: Vec<u8> = (0..100)
+                .map(|_| rng.gen::<[u8; 32]>().to_vec())
+                .flatten()
+                .collect();
+            let mut uns = Unstructured::new(&bytes);
+            let a = uns.arbitrary::<u128>().unwrap();
+            let b = uns.arbitrary::<i128>().unwrap();
+            let c = uns.arbitrary::<BigInt>().unwrap();
+            let vals = vec![
+                a.clone().into_cbor().unwrap(),
+                b.clone().into_cbor().unwrap(),
+                c.clone().into_cbor().unwrap(),
+            ];
+            assert_eq!(u128::from_cbor(vals[0].clone()).unwrap(), a);
+            assert_eq!(i128::from_cbor(vals[1].clone()).unwrap(), b);
+            assert_eq!(BigInt::from_cbor(vals[2].clone()).unwrap(), c);
+            vals
+        };
+
+        for val in vals.into_iter() {
+            let mut buf: Vec<u8> = vec![];
+            let n = val.encode(&mut buf).unwrap();
+            let (nval, m) = Cbor::decode(&mut buf.as_slice()).unwrap();
+            assert_eq!(n, m);
+            assert_eq!(val, nval);
+        }
     }
 }

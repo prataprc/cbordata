@@ -1,5 +1,6 @@
 #[cfg(any(feature = "arbitrary", test))]
 use arbitrary::{Arbitrary, Unstructured};
+use num_bigint::{BigInt, Sign};
 
 use crate::{Error, FromCbor, IntoCbor, Result};
 
@@ -42,8 +43,8 @@ pub enum Cbor {
 }
 
 #[cfg(any(feature = "arbitrary", test))]
-impl Arbitrary for Cbor {
-    fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
+impl<'a> Arbitrary<'a> for Cbor {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
         use Cbor::*;
 
         let major = u.arbitrary::<u8>()? % 8;
@@ -420,8 +421,8 @@ pub enum Info {
 }
 
 #[cfg(any(feature = "arbitrary", test))]
-impl Arbitrary for Info {
-    fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
+impl<'a> Arbitrary<'a> for Info {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
         let tn = u.arbitrary::<u8>()? % 24;
         Ok(*u.choose(&[
             Info::Tiny(tn),
@@ -624,8 +625,8 @@ pub enum SimpleValue {
 }
 
 #[cfg(any(feature = "arbitrary", test))]
-impl Arbitrary for SimpleValue {
-    fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
+impl<'a> Arbitrary<'a> for SimpleValue {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
         let f4 = u.arbitrary::<f32>()?;
         let f8 = u.arbitrary::<f64>()?;
 
@@ -786,6 +787,10 @@ impl SimpleValue {
 /// [spec]: https://tools.ietf.org/html/rfc7049
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Tag {
+    /// Tag 2, arbitrarily sized positive integers, byte-string in network byte order.
+    UBigNum(Box<Cbor>),
+    /// Tag 3, arbitrarily sized signed integers, byte-string in network byte order.
+    SBigNum(Box<Cbor>),
     /// Tag 39, used as identifier marker. This implementation shall
     /// treat them as literal values. Used by `Cborize` procedural
     /// macro to match values with types.
@@ -796,15 +801,29 @@ pub enum Tag {
 }
 
 #[cfg(any(feature = "arbitrary", test))]
-impl Arbitrary for Tag {
-    fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
-        let val: Cbor = u.arbitrary()?;
-        let num: u64 = u.arbitrary()?;
-
-        Ok(
-            u.choose(&[Tag::Identifier(Box::new(val)), Tag::Value(num)])?
-                .clone(),
-        )
+impl<'a> Arbitrary<'a> for Tag {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let what: u8 = u.arbitrary()?;
+        match what % 3 {
+            0 => {
+                let val: BigInt = u.arbitrary()?;
+                let (sign, bytes) = val.to_bytes_be();
+                let val = Box::new(Cbor::bytes_into_cbor(bytes).unwrap());
+                match sign {
+                    Sign::Plus | Sign::NoSign => Ok(Tag::UBigNum(val)),
+                    Sign::Minus => Ok(Tag::SBigNum(val)),
+                }
+            }
+            1 => {
+                let val: Cbor = u.arbitrary()?;
+                Ok(Tag::Identifier(Box::new(val)))
+            }
+            2 => {
+                let num: u64 = u.arbitrary()?;
+                Ok(Tag::Value(num))
+            }
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -829,6 +848,8 @@ impl Tag {
     /// Fetch the u64 type value for tag.
     pub fn to_tag_value(&self) -> u64 {
         match self {
+            Tag::UBigNum(_) => 2,
+            Tag::SBigNum(_) => 3,
             Tag::Identifier(_) => 39,
             Tag::Value(val) => *val,
         }
@@ -841,6 +862,8 @@ impl Tag {
         let num = tag.to_tag_value();
         let mut n = encode_addnl(num, w)?;
         n += match tag {
+            Tag::UBigNum(val) => val.encode(w)?,
+            Tag::SBigNum(val) => val.encode(w)?,
             Tag::Identifier(val) => val.encode(w)?,
             Tag::Value(_) => 0,
         };
@@ -854,6 +877,14 @@ impl Tag {
     {
         let (tag, n) = decode_addnl(info, r)?;
         let (tag, m) = match tag {
+            2 => {
+                let (val, m) = Cbor::decode(r)?;
+                (Tag::UBigNum(Box::new(val)), m)
+            }
+            3 => {
+                let (val, m) = Cbor::decode(r)?;
+                (Tag::SBigNum(Box::new(val)), m)
+            }
             39 => {
                 let (val, m) = Cbor::decode(r)?;
                 (Tag::Identifier(Box::new(val)), m)
@@ -865,6 +896,14 @@ impl Tag {
 
     fn pretty_print(&self, p: &str) -> Result<String> {
         let s = match self {
+            Tag::UBigNum(val) => {
+                let val = BigInt::from_bytes_be(Sign::Plus, &val.clone().into_bytes()?);
+                format!("Tag::UBigNum({})", val)
+            }
+            Tag::SBigNum(val) => {
+                let val = BigInt::from_bytes_be(Sign::Minus, &val.clone().into_bytes()?);
+                format!("Tag::SBigNum({})", val)
+            }
             Tag::Identifier(val) => {
                 let mut ss = vec![format!("Tag::Identifier({})", 39)];
                 let p = p.to_owned() + "  ";
@@ -891,8 +930,8 @@ pub enum Key {
 }
 
 #[cfg(any(feature = "arbitrary", test))]
-impl Arbitrary for Key {
-    fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
+impl<'a> Arbitrary<'a> for Key {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
         let bl = Key::Bool(u.arbitrary::<bool>()?);
         let nn = Key::N64(-u.arbitrary::<i64>()?.abs());
         let pn = Key::U64(u.arbitrary::<u64>()?);

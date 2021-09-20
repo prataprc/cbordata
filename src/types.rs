@@ -1,12 +1,14 @@
 // Implement IntoCbor and FromCbor for standard types and types defined in this package.
 
+use num_bigint::{BigInt, Sign};
+
 use std::ffi;
 #[cfg(unix)]
 use std::os::unix::ffi::OsStringExt;
 #[cfg(windows)]
 use std::os::windows::ffi::OsStringExt;
 
-use crate::{Cbor, Error, FromCbor, IntoCbor, Key, Result, SimpleValue};
+use crate::{Cbor, Error, FromCbor, IntoCbor, Key, Result, SimpleValue, Tag};
 
 impl<T, const N: usize> IntoCbor for [T; N]
 where
@@ -151,6 +153,87 @@ macro_rules! convert_pos_num {
 }
 
 convert_pos_num! {u64 u32 u16 u8 usize}
+
+impl IntoCbor for u128 {
+    fn into_cbor(self) -> Result<Cbor> {
+        BigInt::from(self).into_cbor()
+    }
+}
+
+impl FromCbor for u128 {
+    fn from_cbor(val: Cbor) -> Result<u128> {
+        use num_traits::cast::ToPrimitive;
+
+        let (sign, bytes) = match val {
+            Cbor::Major6(_, tag) => match tag {
+                Tag::UBigNum(val) => (Sign::Plus, val.into_bytes()?),
+                Tag::SBigNum(val) => (Sign::Minus, val.into_bytes()?),
+                _ => err_at!(FailConvert, msg: "cbor not a bigint")?,
+            },
+            _ => err_at!(FailConvert, msg: "cbor not a tag/bigint")?,
+        };
+
+        match BigInt::from_bytes_be(sign, &bytes).to_u128() {
+            Some(val) => Ok(val),
+            None => err_at!(FailConvert, msg: "from bigint to u128"),
+        }
+    }
+}
+
+impl IntoCbor for i128 {
+    fn into_cbor(self) -> Result<Cbor> {
+        BigInt::from(self).into_cbor()
+    }
+}
+
+impl FromCbor for i128 {
+    fn from_cbor(val: Cbor) -> Result<i128> {
+        use num_traits::cast::ToPrimitive;
+
+        let (sign, bytes) = match val {
+            Cbor::Major6(_, tag) => match tag {
+                Tag::UBigNum(val) => (Sign::Plus, val.into_bytes()?),
+                Tag::SBigNum(val) => (Sign::Minus, val.into_bytes()?),
+                _ => err_at!(FailConvert, msg: "cbor not a bigint")?,
+            },
+            _ => err_at!(FailConvert, msg: "cbor not a bigint")?,
+        };
+
+        match BigInt::from_bytes_be(sign, &bytes).to_i128() {
+            Some(val) => Ok(val),
+            None => err_at!(FailConvert, msg: "from bigint to i128"),
+        }
+    }
+}
+
+impl IntoCbor for BigInt {
+    fn into_cbor(self) -> Result<Cbor> {
+        match self.to_bytes_be() {
+            (Sign::Plus, bytes) | (Sign::NoSign, bytes) => {
+                let val = Box::new(Cbor::bytes_into_cbor(bytes)?);
+                Ok(Tag::UBigNum(val).into())
+            }
+            (Sign::Minus, bytes) => {
+                let val = Box::new(Cbor::bytes_into_cbor(bytes)?);
+                Ok(Tag::SBigNum(val).into())
+            }
+        }
+    }
+}
+
+impl FromCbor for BigInt {
+    fn from_cbor(val: Cbor) -> Result<BigInt> {
+        let (sign, bytes) = match val {
+            Cbor::Major6(_, tag) => match tag {
+                Tag::UBigNum(val) => (Sign::Plus, val.into_bytes()?),
+                Tag::SBigNum(val) => (Sign::Minus, val.into_bytes()?),
+                _ => err_at!(FailConvert, msg: "cbor not a bigint")?,
+            },
+            _ => err_at!(FailConvert, msg: "cbor not a tag/bigint")?,
+        };
+        Ok(BigInt::from_bytes_be(sign, &bytes))
+    }
+}
 
 impl<'a> IntoCbor for &'a [u8] {
     fn into_cbor(self) -> Result<Cbor> {

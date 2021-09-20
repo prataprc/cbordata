@@ -21,13 +21,15 @@ debug = true
 name = "cbordata"
 
 [dependencies]
+num-bigint = { version = "0.4.2", features = ["arbitrary"] }
+num-traits = "0.2.14"
 arbitrary = { version = "0.4.7", features = ["derive"], optional = true }
 cbordata-derive = { path = "cbordata-derive", version = "=0.5.0"}
 
 [dev-dependencies]
 quickcheck = "0.7"
 rand = { version = "0.8.4", features = ["small_rng"] }
-arbitrary = { version = "0.4.7", features = ["derive"] }
+arbitrary = { version = "1", features = ["derive"] }
 
 [[example]]
 name = "macro"
