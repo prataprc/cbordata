@@ -12,7 +12,7 @@ license = "MIT"
 
 [dependencies]
 lazy_static = "1.2.0"
-syn = { version = "1", features = ["full"] }
+syn = { version = "1", features = ["full", "extra-traits"] }
 quote = "1"
 proc-macro2 = "1"
 heck = "0.3.0"
