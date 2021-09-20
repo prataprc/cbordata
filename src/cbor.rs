@@ -101,6 +101,52 @@ impl Arbitrary for Cbor {
 }
 
 impl Cbor {
+    fn pretty_print(&self, p: &str) -> Result<String> {
+        use std::str::from_utf8;
+        use Cbor::{
+            Binary, Major0, Major1, Major2, Major3, Major4, Major5, Major6, Major7,
+        };
+
+        let s = match self {
+            Major0(info, val) => format!("{}Maj0({},{})", p, info.pretty_print()?, val),
+            Major1(info, val) => format!("{}Maj1({},{})", p, info.pretty_print()?, val),
+            Major2(_info, val) => format!("{}Byts({},{:?})", p, val.len(), val),
+            Major3(_info, val) => {
+                let txt = from_utf8(&val).unwrap();
+                format!("{}Text({},{})", p, val.len(), txt)
+            }
+            Major4(_info, vals) => {
+                let mut ss = vec![format!("{}List({})", p, vals.len())];
+                let p = p.to_owned() + "  ";
+                for val in vals.iter() {
+                    ss.push(val.pretty_print(&p)?);
+                }
+                ss.join("\n")
+            }
+            Major5(_info, vals) => {
+                let mut ss = vec![format!("{}Dict({})", p, vals.len())];
+                let p = p.to_owned() + "  ";
+                for (key, val) in vals.iter() {
+                    ss.push(key.pretty_print()?);
+                    ss.push(val.pretty_print(&p)?);
+                }
+                ss.join("\n")
+            }
+            Major6(_info, val) => val.pretty_print(p)?,
+            Major7(info, val) => format!(
+                "{}Maj7({},{})",
+                p,
+                info.pretty_print()?,
+                val.pretty_print()?
+            ),
+            Binary(bytes) => Cbor::decode(&mut bytes.as_slice())?.0.pretty_print(p)?,
+        };
+
+        Ok(s)
+    }
+}
+
+impl Cbor {
     /// Serialize this cbor value.
     pub fn encode<W>(&self, w: &mut W) -> Result<usize>
     where
@@ -429,6 +475,24 @@ impl TryFrom<usize> for Info {
     }
 }
 
+impl Info {
+    fn pretty_print(&self) -> Result<String> {
+        let s = match self {
+            Info::Tiny(val) => format!("Tiny({})", val),
+            Info::U8 => "U8".to_string(),
+            Info::U16 => "U16".to_string(),
+            Info::U32 => "U32".to_string(),
+            Info::U64 => "U64".to_string(),
+            Info::Reserved28 => "Reserved28".to_string(),
+            Info::Reserved29 => "Reserved29".to_string(),
+            Info::Reserved30 => "Reserved30".to_string(),
+            Info::Indefinite => "Indefinite".to_string(),
+        };
+
+        Ok(s)
+    }
+}
+
 fn encode_hdr<W>(major: u8, info: Info, w: &mut W) -> Result<usize>
 where
     W: io::Write,
@@ -594,6 +658,25 @@ impl PartialEq for SimpleValue {
             (Break, Break) => true,
             (_, _) => false,
         }
+    }
+}
+
+impl SimpleValue {
+    fn pretty_print(&self) -> Result<String> {
+        let s = match self {
+            SimpleValue::Unassigned => "Unassigned".to_string(),
+            SimpleValue::True => "True".to_string(),
+            SimpleValue::False => "False".to_string(),
+            SimpleValue::Null => "Null".to_string(),
+            SimpleValue::Undefined => "Undefined".to_string(),
+            SimpleValue::Reserved24(val) => format!("Reserved24({})", val),
+            SimpleValue::F16(val) => format!("F16({})", val),
+            SimpleValue::F32(val) => format!("F32({})", val),
+            SimpleValue::F64(val) => format!("F64({})", val),
+            SimpleValue::Break => "Break".to_string(),
+        };
+
+        Ok(s)
     }
 }
 
@@ -779,6 +862,20 @@ impl Tag {
         };
         Ok((tag, m + n))
     }
+
+    fn pretty_print(&self, p: &str) -> Result<String> {
+        let s = match self {
+            Tag::Identifier(val) => {
+                let mut ss = vec![format!("Tag::Identifier({})", 39)];
+                let p = p.to_owned() + "  ";
+                ss.push(val.pretty_print(&p)?);
+                ss.join("\n")
+            }
+            Tag::Value(val) => format!("Tag::Value({})", val),
+        };
+
+        Ok(s)
+    }
 }
 
 /// Possible types that can be used as a key in cbor-map.
@@ -835,6 +932,20 @@ impl Key {
             Text(_) => 24,
         }
     }
+
+    fn pretty_print(&self) -> Result<String> {
+        let s = match self {
+            Key::Bool(val) => format!("Key(B:{})", val),
+            Key::N64(val) => format!("Key(N:{})", val),
+            Key::U64(val) => format!("Key(P:{})", val),
+            Key::F32(val) => format!("Key(F:{})", val),
+            Key::F64(val) => format!("Key(D:{})", val),
+            Key::Bytes(val) => format!("Key(B:{:?})", val),
+            Key::Text(val) => format!("Key(T:{:?})", val),
+        };
+
+        Ok(s)
+    }
 }
 
 impl Eq for Key {}
@@ -884,6 +995,12 @@ impl PartialOrd for Key {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         Some(self.cmp(other))
     }
+}
+
+/// Return pretty formated string representing `val` that can be printed on
+/// terminal, log-file for eye-ball verification.
+pub fn pretty_print(val: &Cbor) -> Result<String> {
+    val.pretty_print("")
 }
 
 #[cfg(test)]

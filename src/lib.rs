@@ -102,7 +102,7 @@ pub use cbordata_derive::*;
 mod cbor;
 mod types;
 
-pub use cbor::{Cbor, Info, Key, SimpleValue, Tag, RECURSION_LIMIT};
+pub use cbor::{pretty_print, Cbor, Info, Key, SimpleValue, Tag, RECURSION_LIMIT};
 
 /// Convert rust-native value to [Cbor], which can then be encoded into bytes
 /// using Cbor.
