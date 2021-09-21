@@ -109,12 +109,16 @@ impl Cbor {
         };
 
         let s = match self {
-            Major0(info, val) => format!("{}Maj0({},{})", p, info.pretty_print()?, val),
-            Major1(info, val) => format!("{}Maj1({},{})", p, info.pretty_print()?, val),
+            Major0(info, val) => {
+                format!("{}Maj0({},0x{:x})", p, info.pretty_print()?, val)
+            }
+            Major1(info, val) => {
+                format!("{}Maj1({},0x{:x})", p, info.pretty_print()?, val)
+            }
             Major2(_info, val) => format!("{}Byts({},{:?})", p, val.len(), val),
             Major3(_info, val) => {
                 let txt = from_utf8(&val).unwrap();
-                format!("{}Text({},{})", p, val.len(), txt)
+                format!("{}Text({},{:?})", p, val.len(), txt)
             }
             Major4(_info, vals) => {
                 let mut ss = vec![format!("{}List({})", p, vals.len())];
@@ -133,7 +137,7 @@ impl Cbor {
                 }
                 ss.join("\n")
             }
-            Major6(_info, val) => val.pretty_print(p)?,
+            Major6(_info, val) => format!("{}{}", p, val.pretty_print(p)?),
             Major7(info, val) => format!(
                 "{}Maj7({},{})",
                 p,
@@ -479,7 +483,7 @@ impl TryFrom<usize> for Info {
 impl Info {
     fn pretty_print(&self) -> Result<String> {
         let s = match self {
-            Info::Tiny(val) => format!("Tiny({})", val),
+            Info::Tiny(val) => format!("Tiny(0x{:x})", val),
             Info::U8 => "U8".to_string(),
             Info::U16 => "U16".to_string(),
             Info::U32 => "U32".to_string(),
@@ -670,7 +674,7 @@ impl SimpleValue {
             SimpleValue::False => "False".to_string(),
             SimpleValue::Null => "Null".to_string(),
             SimpleValue::Undefined => "Undefined".to_string(),
-            SimpleValue::Reserved24(val) => format!("Reserved24({})", val),
+            SimpleValue::Reserved24(val) => format!("Reserved24(0x{:x})", val),
             SimpleValue::F16(val) => format!("F16({})", val),
             SimpleValue::F32(val) => format!("F32({})", val),
             SimpleValue::F64(val) => format!("F64({})", val),
@@ -782,6 +786,25 @@ impl SimpleValue {
     }
 }
 
+#[derive(Copy, Clone)]
+enum TagNum {
+    UBigNum = 2,
+    SBigNum = 3,
+    Identifier = 39,
+    Any = isize::MAX,
+}
+
+impl From<u64> for TagNum {
+    fn from(num: u64) -> TagNum {
+        match num {
+            2 => TagNum::UBigNum,
+            3 => TagNum::SBigNum,
+            39 => TagNum::Identifier,
+            _ => TagNum::Any,
+        }
+    }
+}
+
 /// Major type 6, Tag values. Refer to Cbor [spec] for details.
 ///
 /// [spec]: https://tools.ietf.org/html/rfc7049
@@ -803,9 +826,16 @@ pub enum Tag {
 #[cfg(any(feature = "arbitrary", test))]
 impl<'a> Arbitrary<'a> for Tag {
     fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-        let what: u8 = u.arbitrary()?;
-        match what % 3 {
-            0 => {
+        let tag = *u
+            .choose(&[
+                TagNum::UBigNum,
+                TagNum::SBigNum,
+                TagNum::Identifier,
+                TagNum::Any,
+            ])
+            .unwrap();
+        match tag {
+            TagNum::UBigNum | TagNum::SBigNum => {
                 let val: BigInt = u.arbitrary()?;
                 let (sign, bytes) = val.to_bytes_be();
                 let val = Box::new(Cbor::bytes_into_cbor(bytes).unwrap());
@@ -814,15 +844,14 @@ impl<'a> Arbitrary<'a> for Tag {
                     Sign::Minus => Ok(Tag::SBigNum(val)),
                 }
             }
-            1 => {
+            TagNum::Identifier => {
                 let val: Cbor = u.arbitrary()?;
                 Ok(Tag::Identifier(Box::new(val)))
             }
-            2 => {
+            TagNum::Any => {
                 let num: u64 = u.arbitrary()?;
                 Ok(Tag::Value(num))
             }
-            _ => unreachable!(),
         }
     }
 }
@@ -848,9 +877,9 @@ impl Tag {
     /// Fetch the u64 type value for tag.
     pub fn to_tag_value(&self) -> u64 {
         match self {
-            Tag::UBigNum(_) => 2,
-            Tag::SBigNum(_) => 3,
-            Tag::Identifier(_) => 39,
+            Tag::UBigNum(_) => TagNum::UBigNum as u64,
+            Tag::SBigNum(_) => TagNum::SBigNum as u64,
+            Tag::Identifier(_) => TagNum::Identifier as u64,
             Tag::Value(val) => *val,
         }
     }
@@ -876,20 +905,20 @@ impl Tag {
         R: io::Read,
     {
         let (tag, n) = decode_addnl(info, r)?;
-        let (tag, m) = match tag {
-            2 => {
+        let (tag, m) = match TagNum::from(tag) {
+            TagNum::UBigNum => {
                 let (val, m) = Cbor::decode(r)?;
                 (Tag::UBigNum(Box::new(val)), m)
             }
-            3 => {
+            TagNum::SBigNum => {
                 let (val, m) = Cbor::decode(r)?;
                 (Tag::SBigNum(Box::new(val)), m)
             }
-            39 => {
+            TagNum::Identifier => {
                 let (val, m) = Cbor::decode(r)?;
                 (Tag::Identifier(Box::new(val)), m)
             }
-            val => (Tag::Value(val), 0),
+            _ => (Tag::Value(tag as u64), 0),
         };
         Ok((tag, m + n))
     }
@@ -898,19 +927,19 @@ impl Tag {
         let s = match self {
             Tag::UBigNum(val) => {
                 let val = BigInt::from_bytes_be(Sign::Plus, &val.clone().into_bytes()?);
-                format!("Tag::UBigNum({})", val)
+                format!("Tag::UBigNum(0x{:x})", val)
             }
             Tag::SBigNum(val) => {
                 let val = BigInt::from_bytes_be(Sign::Minus, &val.clone().into_bytes()?);
-                format!("Tag::SBigNum({})", val)
+                format!("Tag::SBigNum(0x{:x})", val)
             }
             Tag::Identifier(val) => {
-                let mut ss = vec![format!("Tag::Identifier({})", 39)];
+                let mut ss = vec![format!("Tag::Identifier")];
                 let p = p.to_owned() + "  ";
                 ss.push(val.pretty_print(&p)?);
                 ss.join("\n")
             }
-            Tag::Value(val) => format!("Tag::Value({})", val),
+            Tag::Value(val) => format!("Tag::Value(0x{:x})", val),
         };
 
         Ok(s)
@@ -975,8 +1004,8 @@ impl Key {
     fn pretty_print(&self) -> Result<String> {
         let s = match self {
             Key::Bool(val) => format!("Key(B:{})", val),
-            Key::N64(val) => format!("Key(N:{})", val),
-            Key::U64(val) => format!("Key(P:{})", val),
+            Key::N64(val) => format!("Key(N:0x{:x})", val),
+            Key::U64(val) => format!("Key(P:0x{:x})", val),
             Key::F32(val) => format!("Key(F:{})", val),
             Key::F64(val) => format!("Key(D:{})", val),
             Key::Bytes(val) => format!("Key(B:{:?})", val),
