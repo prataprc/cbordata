@@ -1,3 +1,15 @@
+0.5.1
+=====
+
+* Clippy fixes.
+* Add TagNum for clean handling of cbor-tags.
+* TagNum::Any uses 65535 as the discriminant value.
+* pretty-printing
+* cargo: enable extra-traits for `syn` package.
+* make: add build/test/bench/doc/clippy for cbordata-derive in Makefile.
+* make: clippy fixes for cbordata-derive.
+* cbordata-derive: bugfixes.
+
 0.5.0
 =====
 
