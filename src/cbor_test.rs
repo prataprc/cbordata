@@ -104,8 +104,8 @@ fn test_bigint() {
             let b = uns.arbitrary::<i128>().unwrap();
             let c = uns.arbitrary::<BigInt>().unwrap();
             let vals = vec![
-                a.clone().into_cbor().unwrap(),
-                b.clone().into_cbor().unwrap(),
+                a.into_cbor().unwrap(),
+                b.into_cbor().unwrap(),
                 c.clone().into_cbor().unwrap(),
             ];
             assert_eq!(u128::from_cbor(vals[0].clone()).unwrap(), a);

@@ -117,7 +117,7 @@ impl Cbor {
             }
             Major2(_info, val) => format!("{}Byts({},{:?})", p, val.len(), val),
             Major3(_info, val) => {
-                let txt = from_utf8(&val).unwrap();
+                let txt = from_utf8(val).unwrap();
                 format!("{}Text({},{:?})", p, val.len(), txt)
             }
             Major4(_info, vals) => {
@@ -791,7 +791,7 @@ enum TagNum {
     UBigNum = 2,
     SBigNum = 3,
     Identifier = 39,
-    Any = isize::MAX,
+    Any = 65535, // always invalid
 }
 
 impl From<u64> for TagNum {
@@ -934,7 +934,7 @@ impl Tag {
                 format!("Tag::SBigNum(0x{:x})", val)
             }
             Tag::Identifier(val) => {
-                let mut ss = vec![format!("Tag::Identifier")];
+                let mut ss = vec!["Tag::Identifier".to_string()];
                 let p = p.to_owned() + "  ";
                 ss.push(val.pretty_print(&p)?);
                 ss.join("\n")
