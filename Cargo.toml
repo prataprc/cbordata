@@ -24,7 +24,7 @@ name = "cbordata"
 num-bigint = { version = "0.4.2", features = ["arbitrary"] }
 num-traits = "0.2.14"
 arbitrary = { version = "1", features = ["derive"], optional = true }
-cbordata-derive = { path = "cbordata-derive", version = "=0.5.0"}
+cbordata-derive = { path = "cbordata-derive", version = "=0.5.1"}
 
 [dev-dependencies]
 quickcheck = "0.7"
