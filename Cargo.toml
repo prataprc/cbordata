@@ -1,6 +1,6 @@
 [package]
 name = "cbordata"
-version = "0.5.1"
+version = "0.5.2"
 description = "CBOR processing package for document databases and distributed applications"
 repository = "https://github.com/bnclabs/cbordata"
 documentation = "https://docs.rs/cbordata"
