@@ -16,6 +16,14 @@
 
 #![feature(total_cmp)]
 
+#[cfg(any(feature = "arbitrary", test))]
+extern crate arbitrary;
+extern crate cbordata_derive;
+extern crate num_bigint;
+extern crate num_traits;
+#[cfg(test)]
+extern crate rand;
+
 use std::{error, fmt, result};
 
 /// Short form to compose Error values.

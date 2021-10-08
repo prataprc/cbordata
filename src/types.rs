@@ -2,11 +2,14 @@
 
 use num_bigint::{BigInt, Sign};
 
-use std::ffi;
 #[cfg(unix)]
 use std::os::unix::ffi::OsStringExt;
 #[cfg(windows)]
 use std::os::windows::ffi::OsStringExt;
+use std::{
+    convert::{TryFrom, TryInto},
+    ffi,
+};
 
 use crate::{Cbor, Error, FromCbor, IntoCbor, Key, Result, SimpleValue, Tag};
 

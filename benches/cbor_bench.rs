@@ -1,4 +1,6 @@
 #![feature(test)]
+
+extern crate cbordata;
 extern crate test;
 
 use test::Bencher;

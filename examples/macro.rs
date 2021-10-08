@@ -1,5 +1,7 @@
 //! Using cbordata macros
 
+extern crate cbordata;
+
 use cbordata::{Cbor, Cborize, FromCbor, IntoCbor};
 
 #[derive(Cborize, Default, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

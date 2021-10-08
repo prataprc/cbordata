@@ -1,4 +1,8 @@
-extern crate proc_macro;
+extern crate lazy_static;
+extern crate proc_macro2;
+extern crate proc_macro_error;
+extern crate quote;
+extern crate syn;
 
 use lazy_static::lazy_static;
 use proc_macro2::TokenStream;
