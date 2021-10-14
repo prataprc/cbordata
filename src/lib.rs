@@ -112,6 +112,18 @@ mod types;
 
 pub use cbor::{pretty_print, Cbor, Info, Key, SimpleValue, Tag, RECURSION_LIMIT};
 
+/// Cborize expect that every type that needs to be serialized must include an
+/// associated constant named `ID`. The type of ID can be any of the rust-native type.
+/// Given this condition Cborize shall encode all values of a struct or enums as
+/// major-type-4, array of Cbor items, where the first item shall be the type's ID.
+#[inline]
+pub fn get_cborize_id(val: &Cbor) -> Option<Cbor> {
+    match val {
+        Cbor::Major4(_, items) => items.first().map(|item| item.clone()),
+        _ => None,
+    }
+}
+
 /// Convert rust-native value to [Cbor], which can then be encoded into bytes
 /// using Cbor.
 ///
