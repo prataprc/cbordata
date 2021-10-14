@@ -385,12 +385,12 @@ impl Cbor {
     /// at the application side, we are exposing this API to convert `Vec<u8>`
     /// into Cbor Major type-2, while using the [IntoCbor] trait shall convert
     /// it into Cbor Major type-4, a list of integer.
-    pub fn bytes_into_cbor(val: Vec<u8>) -> Result<Self> {
+    pub fn from_bytes(val: Vec<u8>) -> Result<Self> {
         let n = err_at!(FailConvert, u64::try_from(val.len()))?;
         Ok(Cbor::Major2(n.into(), val))
     }
 
-    /// This is converse of [Cbor::bytes_into_cbor].
+    /// This is converse of [Cbor::from_bytes].
     pub fn into_bytes(self) -> Result<Vec<u8>> {
         match self {
             Cbor::Major2(_, val) => Ok(val),
@@ -838,7 +838,7 @@ impl<'a> Arbitrary<'a> for Tag {
             TagNum::UBigNum | TagNum::SBigNum => {
                 let val: BigInt = u.arbitrary()?;
                 let (sign, bytes) = val.to_bytes_be();
-                let val = Box::new(Cbor::bytes_into_cbor(bytes).unwrap());
+                let val = Box::new(Cbor::from_bytes(bytes).unwrap());
                 match sign {
                     Sign::Plus | Sign::NoSign => Ok(Tag::UBigNum(val)),
                     Sign::Minus => Ok(Tag::SBigNum(val)),

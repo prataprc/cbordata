@@ -420,7 +420,7 @@ fn named_fields_to_cbor(fields: &FieldsNamed, croot: TokenStream) -> TokenStream
 
         match &field.ident {
             Some(field_name) if is_bytes => tokens.extend(quote! {
-                items.push(#croot::Cbor::bytes_into_cbor(value.#field_name)?);
+                items.push(#croot::Cbor::from_bytes(value.#field_name)?);
             }),
             Some(field_name) => tokens.extend(quote! {
                 items.push(value.#field_name.into_cbor()?);
@@ -445,7 +445,7 @@ fn named_var_fields_to_cbor(
 
         match &field.ident {
             Some(field_name) if is_bytes => body.extend(quote! {
-                items.push(#croot::Cbor::bytes_into_cbor(#field_name)?);
+                items.push(#croot::Cbor::from_bytes(#field_name)?);
             }),
             Some(field_name) => body.extend(quote! {
                 items.push(#field_name.into_cbor()?);
@@ -470,7 +470,7 @@ fn unnamed_fields_to_cbor(
 
         if is_bytes {
             body.extend(quote! {
-                items.push(#croot::Cbor::bytes_into_cbor(#field_name)?);
+                items.push(#croot::Cbor::from_bytes(#field_name)?);
             });
         } else {
             body.extend(quote! {

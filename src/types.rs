@@ -213,11 +213,11 @@ impl IntoCbor for BigInt {
     fn into_cbor(self) -> Result<Cbor> {
         match self.to_bytes_be() {
             (Sign::Plus, bytes) | (Sign::NoSign, bytes) => {
-                let val = Box::new(Cbor::bytes_into_cbor(bytes)?);
+                let val = Box::new(Cbor::from_bytes(bytes)?);
                 Ok(Tag::UBigNum(val).into())
             }
             (Sign::Minus, bytes) => {
-                let val = Box::new(Cbor::bytes_into_cbor(bytes)?);
+                let val = Box::new(Cbor::from_bytes(bytes)?);
                 Ok(Tag::SBigNum(val).into())
             }
         }
