@@ -9,6 +9,7 @@ use std::os::windows::ffi::OsStringExt;
 use std::{
     convert::{TryFrom, TryInto},
     ffi,
+    sync::Arc,
 };
 
 use crate::{Cbor, Error, FromCbor, IntoCbor, Key, Result, SimpleValue, Tag};
@@ -462,5 +463,29 @@ convert_key! {
 impl<'a> From<&'a str> for Key {
     fn from(val: &'a str) -> Key {
         Key::Text(val.to_string())
+    }
+}
+
+impl<T> FromCbor for Arc<T>
+where
+    T: FromCbor,
+{
+    fn from_cbor(val: Cbor) -> Result<Self> {
+        T::from_cbor(val).map(Arc::new)
+    }
+}
+
+impl<T> IntoCbor for Arc<T>
+where
+    T: IntoCbor + Clone,
+{
+    fn into_cbor(self) -> Result<Cbor> {
+        match Arc::try_unwrap(self) {
+            Ok(s) => s.into_cbor(),
+            Err(s) => {
+                let s: T = s.as_ref().clone();
+                s.into_cbor()
+            }
+        }
     }
 }

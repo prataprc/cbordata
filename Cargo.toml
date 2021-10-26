@@ -33,6 +33,9 @@ arbitrary = { version = "1", features = ["derive"] }
 [[example]]
 name = "macro"
 crate-type = ["bin"]
+[[example]]
+name = "arc"
+crate-type = ["bin"]
 
 [badges]
 maintenance = { status = "actively-developed" }

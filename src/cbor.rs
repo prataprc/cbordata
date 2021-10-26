@@ -658,8 +658,8 @@ impl PartialEq for SimpleValue {
             (Undefined, Undefined) => true,
             (Reserved24(a), Reserved24(b)) => a == b,
             (F16(a), F16(b)) => a == b,
-            (F32(a), F32(b)) => a.total_cmp(b) == cmp::Ordering::Equal,
-            (F64(a), F64(b)) => a.total_cmp(b) == cmp::Ordering::Equal,
+            (F32(a), F32(b)) => a.total_cmp_stub(b) == cmp::Ordering::Equal,
+            (F64(a), F64(b)) => a.total_cmp_stub(b) == cmp::Ordering::Equal,
             (Break, Break) => true,
             (_, _) => false,
         }
@@ -1026,8 +1026,8 @@ impl PartialEq for Key {
             (Bool(a), Bool(b)) => a == b,
             (N64(a), N64(b)) => a == b,
             (U64(a), U64(b)) => a == b,
-            (F32(a), F32(b)) => a.total_cmp(b) == cmp::Ordering::Equal,
-            (F64(a), F64(b)) => a.total_cmp(b) == cmp::Ordering::Equal,
+            (F32(a), F32(b)) => a.total_cmp_stub(b) == cmp::Ordering::Equal,
+            (F64(a), F64(b)) => a.total_cmp_stub(b) == cmp::Ordering::Equal,
             (Bytes(a), Bytes(b)) => a == b,
             (Text(a), Text(b)) => a == b,
             (_, _) => false,
@@ -1049,8 +1049,8 @@ impl Ord for Key {
                 (U64(_), N64(_)) => cmp::Ordering::Greater,
                 (Bytes(a), Bytes(b)) => a.cmp(b),
                 (Text(a), Text(b)) => a.cmp(b),
-                (F32(a), F32(b)) => a.total_cmp(b),
-                (F64(a), F64(b)) => a.total_cmp(b),
+                (F32(a), F32(b)) => a.total_cmp_stub(b),
+                (F64(a), F64(b)) => a.total_cmp_stub(b),
                 (_, _) => unreachable!(),
             }
         } else {
@@ -1069,6 +1069,33 @@ impl PartialOrd for Key {
 /// terminal, log-file for eye-ball verification.
 pub fn pretty_print(val: &Cbor) -> Result<String> {
     val.pretty_print("")
+}
+
+/// Stub trait until `total_cmp` is stabilized
+/// implementations taken from
+/// https://github.com/l0calh05t/totally-ordered-rs/blob/be4e11c9c9edefd9763473fa3e3189dcee995bb5/src/lib.rs
+trait TotalCmpStub {
+    fn total_cmp_stub(&self, other: &Self) -> cmp::Ordering;
+}
+
+impl TotalCmpStub for f32 {
+    fn total_cmp_stub(&self, other: &Self) -> cmp::Ordering {
+        let mut a = self.to_bits() as i32;
+        let mut b = other.to_bits() as i32;
+        a ^= (((a >> (32 - 1)) as u32) >> 1) as i32;
+        b ^= (((b >> (32 - 1)) as u32) >> 1) as i32;
+        a.cmp(&b)
+    }
+}
+
+impl TotalCmpStub for f64 {
+    fn total_cmp_stub(&self, other: &Self) -> cmp::Ordering {
+        let mut a = self.to_bits() as i64;
+        let mut b = other.to_bits() as i64;
+        a ^= (((a >> (64 - 1)) as u64) >> 1) as i64;
+        b ^= (((b >> (64 - 1)) as u64) >> 1) as i64;
+        a.cmp(&b)
+    }
 }
 
 #[cfg(test)]

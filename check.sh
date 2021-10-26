@@ -13,8 +13,8 @@ exec_prg() {
     do
         date; time cargo +nightly test --release -- --nocapture || exit $?
         date; time cargo +nightly test -- --nocapture || exit $?
-        # TODO: date; time cargo +stable test --release -- --nocapture || exit $?
-        # TODO: date; time cargo +stable test -- --nocapture || exit $?
+        date; time cargo +stable test --release -- --nocapture || exit $?
+        date; time cargo +stable test -- --nocapture || exit $?
     done
 }
 

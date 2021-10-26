@@ -1,12 +1,12 @@
 build:
 	# ... build ...
-	# TODO: cargo +stable build
+	cargo +stable build
 	cargo +nightly build
 	cd cbordata-derive; cargo +nightly build
 	#
 	# ... test ...
-	# TODO: cargo +stable test --no-run
-	# TODO: cd cbordata-derive; cargo +nightly test --no-run
+	cargo +stable test --no-run
+	cd cbordata-derive; cargo +nightly test --no-run
 	cargo +nightly test --no-run
 	cd cbordata-derive; cargo +nightly test --no-run
 	#
@@ -15,8 +15,8 @@ build:
 	cd cbordata-derive; cargo +nightly bench --no-run
 	#
 	# ... doc ...
-	# TODO: cargo +stable doc
-	# TODO: cd cbordata-derive; cargo +nightly bench --no-run
+	cargo +stable doc
+	cd cbordata-derive; cargo +nightly bench --no-run
 	cargo +nightly doc
 	cd cbordata-derive; cargo +nightly bench --no-run
 	#
@@ -26,17 +26,19 @@ build:
 
 test:
 	# ... test ...
-	# TODO: cargo +stable test --no-run
-	# TODO: cd cbordata-derive; cargo +stable test
-	# TODO: cargo +stable run --example macro
+	cargo +stable test --no-run
+	cd cbordata-derive; cargo +stable test
+	cargo +stable run --example macro
+	cargo +stable run --example arc
 	cargo +nightly test
 	cd cbordata-derive; cargo +nightly test
 	cargo +nightly run --example macro
+	cargo +nightly run --example arc
 
 bench:
 	# ... bench ...
-	# TODO: cargo +stable test --no-run
-	# TODO: cd cbordata-derive; cargo +stable test
+	cargo +stable test --no-run
+	cd cbordata-derive; cargo +stable test
 	cargo +nightly bench
 	cd cbordata-derive; cargo +nightly bench
 

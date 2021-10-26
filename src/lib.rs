@@ -14,8 +14,6 @@
 //!
 //! [cbor]: https://tools.ietf.org/html/rfc7049
 
-#![feature(total_cmp)]
-
 #[cfg(any(feature = "arbitrary", test))]
 extern crate arbitrary;
 extern crate cbordata_derive;
