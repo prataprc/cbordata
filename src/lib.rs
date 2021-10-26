@@ -117,7 +117,7 @@ pub use cbor::{pretty_print, Cbor, Info, Key, SimpleValue, Tag, RECURSION_LIMIT}
 #[inline]
 pub fn get_cborize_id(val: &Cbor) -> Option<Cbor> {
     match val {
-        Cbor::Major4(_, items) => items.first().map(|item| item.clone()),
+        Cbor::Major4(_, items) => items.first().cloned(),
         _ => None,
     }
 }
