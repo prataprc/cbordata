@@ -1,5 +1,5 @@
 use arbitrary::Unstructured;
-use rand::{prelude::random, rngs::SmallRng, Rng, SeedableRng};
+use rand::{prelude::random, rngs::StdRng, Rng, SeedableRng};
 
 use super::*;
 
@@ -12,7 +12,7 @@ fn test_simple_value() {
     let mut rng = {
         let mut rng_seed = [0; 32];
         rng_seed[0..16].copy_from_slice(&seed.to_le_bytes());
-        SmallRng::from_seed(rng_seed)
+        StdRng::from_seed(rng_seed)
     };
 
     for _ in 0..100 {
@@ -61,7 +61,7 @@ fn test_cbor() {
     let mut rng = {
         let mut rng_seed = [0; 32];
         rng_seed[0..16].copy_from_slice(&seed.to_le_bytes());
-        SmallRng::from_seed(rng_seed)
+        StdRng::from_seed(rng_seed)
     };
 
     for _i in 0..10000 {
@@ -90,7 +90,7 @@ fn test_bigint() {
     let mut rng = {
         let mut rng_seed = [0; 32];
         rng_seed[0..16].copy_from_slice(&seed.to_le_bytes());
-        SmallRng::from_seed(rng_seed)
+        StdRng::from_seed(rng_seed)
     };
 
     for _i in 0..10000 {
