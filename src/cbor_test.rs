@@ -67,8 +67,7 @@ fn test_cbor() {
     for _i in 0..10000 {
         let val: Cbor = {
             let bytes: Vec<u8> = (0..100)
-                .map(|_| rng.gen::<[u8; 32]>().to_vec())
-                .flatten()
+                .flat_map(|_| rng.gen::<[u8; 32]>().to_vec())
                 .collect();
             let mut uns = Unstructured::new(&bytes);
             uns.arbitrary().unwrap()
@@ -96,8 +95,7 @@ fn test_bigint() {
     for _i in 0..10000 {
         let vals = {
             let bytes: Vec<u8> = (0..100)
-                .map(|_| rng.gen::<[u8; 32]>().to_vec())
-                .flatten()
+                .flat_map(|_| rng.gen::<[u8; 32]>().to_vec())
                 .collect();
             let mut uns = Unstructured::new(&bytes);
             let a = uns.arbitrary::<u128>().unwrap();
