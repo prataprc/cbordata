@@ -1071,8 +1071,7 @@ pub fn pretty_print(val: &Cbor) -> Result<String> {
     val.pretty_print("")
 }
 
-/// Stub trait until `total_cmp` is stabilized
-/// implementations taken from
+/// Stub trait until `total_cmp` is stabilized implementations taken from, TODO
 /// https://github.com/l0calh05t/totally-ordered-rs/blob/be4e11c9c9edefd9763473fa3e3189dcee995bb5/src/lib.rs
 trait TotalCmpStub {
     fn total_cmp_stub(&self, other: &Self) -> cmp::Ordering;

@@ -9,7 +9,7 @@
 //! Features
 //! ========
 //!
-//! **`arbitrary`** feature must be enabled, for [Cbor] and [Key[ types to implement
+//! **`arbitrary`** feature must be enabled, for [Cbor] and [Key] types to implement
 //! the `arbitrary::Arbitrary` trait.
 //!
 //! [cbor]: https://tools.ietf.org/html/rfc7049
