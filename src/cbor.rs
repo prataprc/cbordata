@@ -4,11 +4,8 @@ use num_bigint::{BigInt, Sign};
 
 use crate::{Error, FromCbor, IntoCbor, Result};
 
-use std::{
-    cmp,
-    convert::{TryFrom, TryInto},
-    io,
-};
+use std::convert::{TryFrom, TryInto};
+use std::{cmp, io};
 
 macro_rules! read_r {
     ($r:ident, $buf:expr) => {
@@ -104,23 +101,20 @@ impl<'a> Arbitrary<'a> for Cbor {
 impl Cbor {
     fn pretty_print(&self, p: &str) -> Result<String> {
         use std::str::from_utf8;
-        use Cbor::{
-            Binary, Major0, Major1, Major2, Major3, Major4, Major5, Major6, Major7,
-        };
 
         let s = match self {
-            Major0(info, val) => {
+            Cbor::Major0(info, val) => {
                 format!("{}Maj0({},0x{:x})", p, info.pretty_print()?, val)
             }
-            Major1(info, val) => {
+            Cbor::Major1(info, val) => {
                 format!("{}Maj1({},0x{:x})", p, info.pretty_print()?, val)
             }
-            Major2(_info, val) => format!("{}Byts({},{:?})", p, val.len(), val),
-            Major3(_info, val) => {
+            Cbor::Major2(_info, val) => format!("{}Byts({},{:?})", p, val.len(), val),
+            Cbor::Major3(_info, val) => {
                 let txt = from_utf8(val).unwrap();
                 format!("{}Text({},{:?})", p, val.len(), txt)
             }
-            Major4(_info, vals) => {
+            Cbor::Major4(_info, vals) => {
                 let mut ss = vec![format!("{}List({})", p, vals.len())];
                 let p = p.to_owned() + "  ";
                 for val in vals.iter() {
@@ -128,7 +122,7 @@ impl Cbor {
                 }
                 ss.join("\n")
             }
-            Major5(_info, vals) => {
+            Cbor::Major5(_info, vals) => {
                 let mut ss = vec![format!("{}Dict({})", p, vals.len())];
                 let p = p.to_owned() + "  ";
                 for (key, val) in vals.iter() {
@@ -137,14 +131,16 @@ impl Cbor {
                 }
                 ss.join("\n")
             }
-            Major6(_info, val) => format!("{}{}", p, val.pretty_print(p)?),
-            Major7(info, val) => format!(
+            Cbor::Major6(_info, val) => format!("{}{}", p, val.pretty_print(p)?),
+            Cbor::Major7(info, val) => format!(
                 "{}Maj7({},{})",
                 p,
                 info.pretty_print()?,
                 val.pretty_print()?
             ),
-            Binary(bytes) => Cbor::decode(&mut bytes.as_slice())?.0.pretty_print(p)?,
+            Cbor::Binary(bytes) => {
+                Cbor::decode(&mut bytes.as_slice())?.0.pretty_print(p)?
+            }
         };
 
         Ok(s)
@@ -1065,8 +1061,9 @@ impl PartialOrd for Key {
     }
 }
 
-/// Return pretty formated string representing `val` that can be printed on
-/// terminal, log-file for eye-ball verification.
+/// Return pretty formated string representing `val`.
+///
+/// Can be printed on terminal or log-file for eye-ball verification.
 pub fn pretty_print(val: &Cbor) -> Result<String> {
     val.pretty_print("")
 }

@@ -1,3 +1,15 @@
+0.6.0
+=====
+
+* **Breaking Change**
+  * Rename `bytes_into_cbor()` to `from_bytes()`, confirms to rust convention.
+* new API `get_cborize_id()` confirms with Cborize.
+* To run on rust stable
+  * Fix compilation issue with missing Arc support in CBOR
+  * Use a stub for `total_cmp` until it is stabalized in rust
+* clippy fixes
+* rust doc
+
 0.5.4
 =====
 

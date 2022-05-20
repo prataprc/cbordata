@@ -6,10 +6,15 @@
 //! implementation means, we can mold it to the needs of distributed apps.
 //! This implementation is also tuned for big-data and document databases.
 //!
+//! Use `cbordata-derive` package for procedural-macro `Cborize`, can be used on
+//! any struct or enum to implement `IntoCbor` and `FromCbor` trait for the derived
+//! struct or enum. Note that `Cborize` expects an associated constant `ID`. Refer
+//! to [get_cborize_id] for details.
+//!
 //! Features
 //! ========
 //!
-//! **`arbitrary`** feature must be enabled, for [Cbor] and [Key] types to implement
+//! * **`arbitrary`** feature must be enabled, for [Cbor] and [Key] types to implement
 //! the `arbitrary::Arbitrary` trait.
 //!
 //! [cbor]: https://tools.ietf.org/html/rfc7049
@@ -110,7 +115,9 @@ mod types;
 
 pub use cbor::{pretty_print, Cbor, Info, Key, SimpleValue, Tag, RECURSION_LIMIT};
 
-/// Cborize expect that every type that needs to be serialized must include an
+/// Get unique ID associated with user-defined type.
+///
+/// Cborize expect user-defined-type that needs to be serialized shall include an
 /// associated constant named `ID`. The type of ID can be any of the rust-native type.
 /// Given this condition Cborize shall encode all values of a struct or enums as
 /// major-type-4, array of Cbor items, where the first item shall be the type's ID.

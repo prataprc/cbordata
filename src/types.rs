@@ -6,11 +6,9 @@ use num_bigint::{BigInt, Sign};
 use std::os::unix::ffi::OsStringExt;
 #[cfg(windows)]
 use std::os::windows::ffi::OsStringExt;
-use std::{
-    convert::{TryFrom, TryInto},
-    ffi,
-    sync::Arc,
-};
+
+use std::convert::{TryFrom, TryInto};
+use std::{ffi, sync::Arc};
 
 use crate::{Cbor, Error, FromCbor, IntoCbor, Key, Result, SimpleValue, Tag};
 
@@ -295,6 +293,7 @@ impl IntoCbor for String {
 impl FromCbor for String {
     fn from_cbor(val: Cbor) -> Result<String> {
         use std::str::from_utf8;
+
         match val {
             Cbor::Major3(_, val) => {
                 Ok(err_at!(FailConvert, from_utf8(&val))?.to_string())

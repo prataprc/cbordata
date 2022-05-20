@@ -1,5 +1,6 @@
 *.swp
 Cargo.lock
+cbordata-derive/Cargo.lock
 core
 arc.check
 rc.check

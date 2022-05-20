@@ -1,6 +1,6 @@
 [package]
 name = "cbordata"
-version = "0.5.4"
+version = "0.6.0"
 description = "CBOR processing package for document databases and distributed applications"
 repository = "https://github.com/bnclabs/cbordata"
 documentation = "https://docs.rs/cbordata"
@@ -20,10 +20,11 @@ debug = true
 name = "cbordata"
 
 [dependencies]
+cbordata-derive = { path = "cbordata-derive", version = "=0.6.0"}
 num-bigint = { version = "0.4.2", features = ["arbitrary"] }
 num-traits = "0.2.14"
+
 arbitrary = { version = "1", features = ["derive"], optional = true }
-cbordata-derive = { path = "cbordata-derive", version = "=0.5.4"}
 
 [dev-dependencies]
 quickcheck = "0.7"
@@ -33,6 +34,7 @@ arbitrary = { version = "1", features = ["derive"] }
 [[example]]
 name = "macro"
 crate-type = ["bin"]
+
 [[example]]
 name = "arc"
 crate-type = ["bin"]
