@@ -14,6 +14,8 @@ What is CBOR
 * Machine friendly, designed for IoT, inter-networking of light weight devices, and easy to implement in many languages.
 * Can be used for more than data exchange, left to user imagination :) ...
 
+----
+
 * [x] Serialization from Rust native type to CBOR binary.
 * [x] De-serialization from CBOR binary to Rust native type.
 * [ ] Streaming CBOR parser.
