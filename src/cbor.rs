@@ -132,12 +132,9 @@ impl Cbor {
                 ss.join("\n")
             }
             Cbor::Major6(_info, val) => format!("{}{}", p, val.pretty_print(p)?),
-            Cbor::Major7(info, val) => format!(
-                "{}Maj7({},{})",
-                p,
-                info.pretty_print()?,
-                val.pretty_print()?
-            ),
+            Cbor::Major7(info, val) => {
+                format!("{}Maj7({},{})", p, info.pretty_print()?, val.pretty_print()?)
+            }
             Cbor::Binary(bytes) => {
                 Cbor::decode(&mut bytes.as_slice())?.0.pretty_print(p)?
             }
@@ -565,31 +562,19 @@ where
         Info::Tiny(num) => (num as u64, 0),
         Info::U8 => {
             read_r!(r, &mut scratch[..1]);
-            (
-                u8::from_be_bytes(scratch[..1].try_into().unwrap()) as u64,
-                1,
-            )
+            (u8::from_be_bytes(scratch[..1].try_into().unwrap()) as u64, 1)
         }
         Info::U16 => {
             read_r!(r, &mut scratch[..2]);
-            (
-                u16::from_be_bytes(scratch[..2].try_into().unwrap()) as u64,
-                2,
-            )
+            (u16::from_be_bytes(scratch[..2].try_into().unwrap()) as u64, 2)
         }
         Info::U32 => {
             read_r!(r, &mut scratch[..4]);
-            (
-                u32::from_be_bytes(scratch[..4].try_into().unwrap()) as u64,
-                4,
-            )
+            (u32::from_be_bytes(scratch[..4].try_into().unwrap()) as u64, 4)
         }
         Info::U64 => {
             read_r!(r, &mut scratch[..8]);
-            (
-                u64::from_be_bytes(scratch[..8].try_into().unwrap()) as u64,
-                8,
-            )
+            (u64::from_be_bytes(scratch[..8].try_into().unwrap()) as u64, 8)
         }
         Info::Indefinite => (0, 0),
         _ => err_at!(FailCbor, msg: "no additional value")?,
@@ -823,12 +808,7 @@ pub enum Tag {
 impl<'a> Arbitrary<'a> for Tag {
     fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
         let tag = *u
-            .choose(&[
-                TagNum::UBigNum,
-                TagNum::SBigNum,
-                TagNum::Identifier,
-                TagNum::Any,
-            ])
+            .choose(&[TagNum::UBigNum, TagNum::SBigNum, TagNum::Identifier, TagNum::Any])
             .unwrap();
         match tag {
             TagNum::UBigNum | TagNum::SBigNum => {

@@ -18,10 +18,7 @@ fn main() {
         const ID: u32 = 0;
     }
 
-    let val = Arc::new(MyType {
-        name: "hello world".to_string(),
-        a: 0,
-    });
+    let val = Arc::new(MyType { name: "hello world".to_string(), a: 0 });
 
     let cbor_val = val.clone().into_cbor().unwrap();
     let ret_val = Arc::<MyType>::from_cbor(cbor_val).unwrap();
